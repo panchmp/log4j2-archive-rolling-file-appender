@@ -83,10 +83,10 @@ public class DefaultArchiveRolloverStrategy implements RolloverStrategy {
             final String compressedName = renameTo;
             Action compressAction = null;
 
-            if (renameTo.endsWith(".gz") || !currentFileName.endsWith(".gz")) {
+            if (renameTo.endsWith(".gz") && !currentFileName.endsWith(".gz")) {
                 renameTo = renameTo.substring(0, renameTo.length() - 3);
                 compressAction = new GZCompressAction(new File(renameTo), new File(compressedName), true);
-            } else if (renameTo.endsWith(".zip") || !currentFileName.endsWith(".zip")) {
+            } else if (renameTo.endsWith(".zip") && !currentFileName.endsWith(".zip")) {
                 renameTo = renameTo.substring(0, renameTo.length() - 4);
                 compressAction = new ZipCompressAction(new File(renameTo), new File(compressedName), true, compressionLevel);
             }

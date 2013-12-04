@@ -4,7 +4,6 @@ import org.apache.logging.log4j.core.Filter;
 import org.apache.logging.log4j.core.Layout;
 import org.apache.logging.log4j.core.LogEvent;
 import org.apache.logging.log4j.core.appender.AbstractOutputStreamAppender;
-import org.apache.logging.log4j.core.appender.rolling.DefaultRolloverStrategy;
 import org.apache.logging.log4j.core.appender.rolling.RollingFileManager;
 import org.apache.logging.log4j.core.appender.rolling.RolloverStrategy;
 import org.apache.logging.log4j.core.appender.rolling.TriggeringPolicy;
@@ -14,6 +13,7 @@ import org.apache.logging.log4j.core.helpers.Booleans;
 import org.apache.logging.log4j.core.layout.PatternLayout;
 import org.apache.logging.log4j.core.net.Advertiser;
 import org.apache.logging.log4j.ext.appender.rolling.ArchiveRollingFileManager;
+import org.apache.logging.log4j.ext.appender.rolling.DefaultArchiveRolloverStrategy;
 
 import java.io.Serializable;
 import java.util.HashMap;
@@ -146,7 +146,7 @@ public class ArchiveRollingFileAppender extends AbstractOutputStreamAppender {
         }
 
         if (strategy == null) {
-            strategy = DefaultRolloverStrategy.createStrategy(null, null, null,
+            strategy = DefaultArchiveRolloverStrategy.createStrategy(null, null, null,
                     String.valueOf(Deflater.DEFAULT_COMPRESSION), config);
         }
 

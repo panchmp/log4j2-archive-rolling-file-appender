@@ -33,9 +33,9 @@
     </dependencies>
 
     <scm>
-        <connection>scm:git:git@github.com:panchmp/log4j2-archive-rolling-file-appender.git</connection>
-        <developerConnection>scm:git:git@github.com:panchmp/log4j2-archive-rolling-file-appender.git</developerConnection>
-        <url>git@github.com:panchmp/log4j2-archive-rolling-file-appender.git</url>
+        <connection>scm:git:https://github.com/panchmp/log4j2-archive-rolling-file-appender.git</connection>
+        <developerConnection>scm:git:https://github.com/panchmp/log4j2-archive-rolling-file-appender.git</developerConnection>
+        <url>https://github.com/panchmp/log4j2-archive-rolling-file-appender.git</url>
     </scm>
 
     <profiles>

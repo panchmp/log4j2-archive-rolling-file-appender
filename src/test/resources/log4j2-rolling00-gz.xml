@@ -1,6 +1,6 @@
 <Configuration status="debug" name="XMLConfigTest" packages="org.apache.logging.log4j.ext">
     <Properties>
-        <Property name="filename">target/log/test.log.gz</Property>
+        <Property name="path">target/log/rolling00</Property>
     </Properties>
     <ThresholdFilter level="debug"/>
 
@@ -9,9 +9,9 @@
             <PatternLayout pattern="%m%n"/>
         </Console>
         <ArchiveRollingFile name="ArchiveRollingFile"
-                            fileName="${filename}"
-                            filePattern="target/log/test-$${date:MM-dd-yyyy}-%i.log.gz">
-            <PatternLayout>
+                            fileName="${path}/test.log.gz"
+                            filePattern="${path}/test-$${date:MM-dd-yyyy}-%i.log.gz">
+        <PatternLayout>
                 <Pattern>%d %p %C{1.} [%t] %m%n</Pattern>
             </PatternLayout>
             <SizeBasedTriggeringPolicy size="500"/>

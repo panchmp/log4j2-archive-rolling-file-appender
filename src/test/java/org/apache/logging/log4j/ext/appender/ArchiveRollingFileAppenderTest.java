@@ -1,33 +1,36 @@
 package org.apache.logging.log4j.ext.appender;
 
-import org.junit.BeforeClass;
 import org.junit.Test;
 
-public class ArchiveRollingFileAppenderTest extends AppenderTest {
-    private static final String CONFIG = "log4j2-rolling-gz.xml";
+import java.io.File;
 
-    @BeforeClass
-    public static void setupClass() {
-        setup(CONFIG);
-    }
+import static org.junit.Assert.assertTrue;
+
+public class ArchiveRollingFileAppenderTest extends AppenderTest {
+
 
     @Test
-    public void testAppender() throws Exception {
+    public void testLog() throws Exception {
+        final String config = "log4j2-rolling00-gz.xml";
+        final String pathLog = "target/log/rolling00";
+
+        setup(config);
+
         for (int i = 0; i < 100; ++i) {
+            //Thread.sleep(100);
             logger.debug("This is test message number " + i);
         }
-        /*final File dir = new File(DIR);
-        assertTrue("Directory not created", dir.exists() && dir.listFiles().length > 0);
+
+        final File dir = new File(pathLog);
+        assertTrue("Directory not created", dir.exists());
+
         final File[] files = dir.listFiles();
         assertTrue("No files created", files.length > 0);
-        boolean found = false;
+
+        assertTrue("Expected 7 archive files", files.length == 8);
+
         for (final File file : files) {
-            if (file.getName().endsWith(fileExtension)) {
-                found = true;
-                break;
-            }
+            assertTrue("No compressed files found", file.getName().endsWith(".gz"));
         }
-        assertTrue("No compressed files found", found);
-        */
     }
 }

@@ -12,12 +12,13 @@ import java.util.zip.ZipOutputStream;
 
 public class ArchiveRollingFileManager extends RollingFileManager {
     private static ArchiveRollingFileManagerFactory factory = new ArchiveRollingFileManagerFactory();
+
     private final boolean bufferedIO;
 
     protected ArchiveRollingFileManager(final String fileName, final String pattern, final OutputStream os,
-                                        final boolean append, final boolean bufferedIO, final long size, final long time, final TriggeringPolicy policy,
-                                        final RolloverStrategy strategy, final String advertiseURI, final Layout<? extends Serializable> layout) {
-        super(fileName, pattern, os, append, size, time, policy, strategy, advertiseURI, layout);
+                                        final boolean append, final boolean bufferedIO, final long size, final long time, final TriggeringPolicy triggeringPolicy,
+                                        final RolloverStrategy rolloverStrategy, final String advertiseURI, final Layout<? extends Serializable> layout) {
+        super(fileName, pattern, os, append, size, time, triggeringPolicy, rolloverStrategy, advertiseURI, layout);
         this.bufferedIO = bufferedIO;
     }
 
@@ -98,6 +99,7 @@ public class ArchiveRollingFileManager extends RollingFileManager {
          * @param data The data required to create the entity.
          * @return a ArchiveRollingFileManager.
          */
+        @Override
         public ArchiveRollingFileManager createManager(final String name, final FactoryData data) {
             final File file = new File(name);
             final File parent = file.getParentFile();
@@ -111,11 +113,10 @@ public class ArchiveRollingFileManager extends RollingFileManager {
                 return null;
             }
             final long size = data.append ? file.length() : 0;
-            final long time = file.lastModified();
-
 
             try {
                 OutputStream os = getOutputStream(name, data.append, data.bufferedIO);
+                final long time = file.lastModified(); // LOG4J2-531 create file first so time has valid value
                 return new ArchiveRollingFileManager(name, data.pattern, os, data.append, data.bufferedIO, size, time, data.policy,
                         data.strategy, data.advertiseURI, data.layout);
             } catch (final IOException ex) {

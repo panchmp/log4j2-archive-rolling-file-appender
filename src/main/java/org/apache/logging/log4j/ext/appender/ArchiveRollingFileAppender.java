@@ -4,7 +4,6 @@ import org.apache.logging.log4j.core.Filter;
 import org.apache.logging.log4j.core.Layout;
 import org.apache.logging.log4j.core.LogEvent;
 import org.apache.logging.log4j.core.appender.AbstractOutputStreamAppender;
-import org.apache.logging.log4j.core.appender.rolling.RollingFileManager;
 import org.apache.logging.log4j.core.appender.rolling.RolloverStrategy;
 import org.apache.logging.log4j.core.appender.rolling.TriggeringPolicy;
 import org.apache.logging.log4j.core.config.Configuration;
@@ -21,7 +20,7 @@ import java.util.Map;
 import java.util.zip.Deflater;
 
 @Plugin(name = "ArchiveRollingFile", category = "Core", elementType = "appender", printObject = true)
-public class ArchiveRollingFileAppender extends AbstractOutputStreamAppender {
+public class ArchiveRollingFileAppender extends AbstractOutputStreamAppender<ArchiveRollingFileManager> {
 
     private final String fileName;
     private final String filePattern;
@@ -30,7 +29,7 @@ public class ArchiveRollingFileAppender extends AbstractOutputStreamAppender {
 
 
     private ArchiveRollingFileAppender(final String name, final Layout<? extends Serializable> layout, final Filter filter,
-                                       final RollingFileManager manager, final String fileName,
+                                       final ArchiveRollingFileManager manager, final String fileName,
                                        final String filePattern, final boolean ignoreExceptions, final boolean immediateFlush,
                                        final Advertiser advertiser) {
         super(name, layout, filter, ignoreExceptions, immediateFlush, manager);
@@ -60,7 +59,7 @@ public class ArchiveRollingFileAppender extends AbstractOutputStreamAppender {
      */
     @Override
     public void append(final LogEvent event) {
-        ((RollingFileManager) getManager()).checkRollover(event);
+        getManager().checkRollover(event);
         super.append(event);
     }
 
@@ -151,7 +150,7 @@ public class ArchiveRollingFileAppender extends AbstractOutputStreamAppender {
         }
 
         if (layout == null) {
-            layout = PatternLayout.createLayout(null, null, null, null, null);
+            layout = PatternLayout.createLayout(null, null, null, null, null, null);
         }
 
         final ArchiveRollingFileManager manager = ArchiveRollingFileManager.getFileManager(fileName, filePattern, isAppend,

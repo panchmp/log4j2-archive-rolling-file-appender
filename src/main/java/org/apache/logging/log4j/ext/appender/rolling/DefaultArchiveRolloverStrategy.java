@@ -7,15 +7,15 @@ import org.apache.logging.log4j.core.appender.rolling.RolloverDescriptionImpl;
 import org.apache.logging.log4j.core.appender.rolling.RolloverStrategy;
 import org.apache.logging.log4j.core.appender.rolling.action.Action;
 import org.apache.logging.log4j.core.appender.rolling.action.FileRenameAction;
-import org.apache.logging.log4j.core.appender.rolling.action.GZCompressAction;
+import org.apache.logging.log4j.core.appender.rolling.action.GzCompressAction;
 import org.apache.logging.log4j.core.appender.rolling.action.ZipCompressAction;
 import org.apache.logging.log4j.core.config.Configuration;
 import org.apache.logging.log4j.core.config.plugins.Plugin;
 import org.apache.logging.log4j.core.config.plugins.PluginAttribute;
 import org.apache.logging.log4j.core.config.plugins.PluginConfiguration;
 import org.apache.logging.log4j.core.config.plugins.PluginFactory;
-import org.apache.logging.log4j.core.helpers.Integers;
 import org.apache.logging.log4j.core.lookup.StrSubstitutor;
+import org.apache.logging.log4j.core.util.Integers;
 import org.apache.logging.log4j.status.StatusLogger;
 
 import java.io.File;
@@ -25,58 +25,19 @@ import java.util.zip.Deflater;
 
 @Plugin(name = "DefaultArchiveRolloverStrategy", category = "Core", printObject = true)
 public class DefaultArchiveRolloverStrategy implements RolloverStrategy {
+
     /**
      * Allow subclasses access to the status logger without creating another instance.
      */
     protected static final Logger LOGGER = StatusLogger.getLogger();
-
+    private static final String EXT_ZIP = ".zip";
+    private static final String EXT_GZIP = ".gz";
     private static final int MIN_WINDOW_SIZE = 1;
     private static final int DEFAULT_WINDOW_SIZE = 7;
-
-    /**
-     * Create the DefaultArchiveRolloverStrategy.
-     *
-     * @param max                 The maximum number of files to keep.
-     * @param min                 The minimum number of files to keep.
-     * @param fileIndex           If set to "max" (the default), files with a higher index will be newer than files with a
-     *                            smaller index. If set to "min", file renaming and the counter will follow the Fixed Window strategy.
-     * @param compressionLevelStr The compression level, 0 (less) through 9 (more); applies only to ZIP files.
-     * @param config              The Configuration.
-     * @return A DefaultArchiveRolloverStrategy.
-     */
-    @PluginFactory
-    public static DefaultArchiveRolloverStrategy createStrategy(
-            @PluginAttribute("max") final String max,
-            @PluginAttribute("min") final String min,
-            @PluginAttribute("fileIndex") final String fileIndex,
-            @PluginAttribute("compressionLevel") final String compressionLevelStr,
-            @PluginConfiguration final Configuration config) {
-        final boolean useMax = fileIndex == null || fileIndex.equalsIgnoreCase("max");
-        int minIndex = MIN_WINDOW_SIZE;
-        if (min != null) {
-            minIndex = Integer.parseInt(min);
-            if (minIndex < 1) {
-                LOGGER.error("Minimum window size too small. Limited to " + MIN_WINDOW_SIZE);
-                minIndex = MIN_WINDOW_SIZE;
-            }
-        }
-        int maxIndex = DEFAULT_WINDOW_SIZE;
-        if (max != null) {
-            maxIndex = Integer.parseInt(max);
-            if (maxIndex < minIndex) {
-                maxIndex = minIndex < DEFAULT_WINDOW_SIZE ? DEFAULT_WINDOW_SIZE : minIndex;
-                LOGGER.error("Maximum window size must be greater than the minimum windows size. Set to " + maxIndex);
-            }
-        }
-        final int compressionLevel = Integers.parseInt(compressionLevelStr, Deflater.DEFAULT_COMPRESSION);
-        return new DefaultArchiveRolloverStrategy(minIndex, maxIndex, useMax, compressionLevel, config.getStrSubstitutor());
-    }
-
     /**
      * Index for oldest retained log file.
      */
     private final int maxIndex;
-
     /**
      * Index for most recent log file.
      */
@@ -97,6 +58,45 @@ public class DefaultArchiveRolloverStrategy implements RolloverStrategy {
         this.useMax = useMax;
         this.compressionLevel = compressionLevel;
         this.subst = subst;
+    }
+
+    /**
+     * Create the DefaultRolloverStrategy.
+     *
+     * @param max                 The maximum number of files to keep.
+     * @param min                 The minimum number of files to keep.
+     * @param fileIndex           If set to "max" (the default), files with a higher index will be newer than files with a
+     *                            smaller index. If set to "min", file renaming and the counter will follow the Fixed Window strategy.
+     * @param compressionLevelStr The compression level, 0 (less) through 9 (more); applies only to ZIP files.
+     * @param config              The Configuration.
+     * @return A DefaultRolloverStrategy.
+     */
+    @PluginFactory
+    public static DefaultArchiveRolloverStrategy createStrategy(
+            @PluginAttribute("max") final String max,
+            @PluginAttribute("min") final String min,
+            @PluginAttribute("fileIndex") final String fileIndex,
+            @PluginAttribute("compressionLevel") final String compressionLevelStr,
+            @PluginConfiguration final Configuration config) {
+        final boolean useMax = fileIndex == null ? true : fileIndex.equalsIgnoreCase("max");
+        int minIndex = MIN_WINDOW_SIZE;
+        if (min != null) {
+            minIndex = Integer.parseInt(min);
+            if (minIndex < 1) {
+                LOGGER.error("Minimum window size too small. Limited to " + MIN_WINDOW_SIZE);
+                minIndex = MIN_WINDOW_SIZE;
+            }
+        }
+        int maxIndex = DEFAULT_WINDOW_SIZE;
+        if (max != null) {
+            maxIndex = Integer.parseInt(max);
+            if (maxIndex < minIndex) {
+                maxIndex = minIndex < DEFAULT_WINDOW_SIZE ? DEFAULT_WINDOW_SIZE : minIndex;
+                LOGGER.error("Maximum window size must be greater than the minimum windows size. Set to " + maxIndex);
+            }
+        }
+        final int compressionLevel = Integers.parseInt(compressionLevelStr, Deflater.DEFAULT_COMPRESSION);
+        return new DefaultArchiveRolloverStrategy(minIndex, maxIndex, useMax, compressionLevel, config.getStrSubstitutor());
     }
 
     public int getCompressionLevel() {
@@ -136,10 +136,10 @@ public class DefaultArchiveRolloverStrategy implements RolloverStrategy {
 
         String highFilename = subst.replace(buf);
 
-        if (highFilename.endsWith(".gz")) {
-            suffixLength = 3;
-        } else if (highFilename.endsWith(".zip")) {
-            suffixLength = 4;
+        if (highFilename.endsWith(EXT_GZIP)) {
+            suffixLength = EXT_GZIP.length();
+        } else if (highFilename.endsWith(EXT_ZIP)) {
+            suffixLength = EXT_ZIP.length();
         }
 
         int maxIndex = 0;
@@ -253,10 +253,10 @@ public class DefaultArchiveRolloverStrategy implements RolloverStrategy {
 
         String lowFilename = subst.replace(buf);
 
-        if (lowFilename.endsWith(".gz")) {
-            suffixLength = 3;
-        } else if (lowFilename.endsWith(".zip")) {
-            suffixLength = 4;
+        if (lowFilename.endsWith(EXT_GZIP)) {
+            suffixLength = EXT_GZIP.length();
+        } else if (lowFilename.endsWith(EXT_ZIP)) {
+            suffixLength = EXT_ZIP.length();
         }
 
         for (int i = lowIndex; i <= highIndex; i++) {
@@ -347,13 +347,13 @@ public class DefaultArchiveRolloverStrategy implements RolloverStrategy {
         if (maxIndex < 0) {
             return null;
         }
-        long start = System.nanoTime();
-        int fileIndex = purge(minIndex, maxIndex, manager);
+        final long start = System.nanoTime();
+        final int fileIndex = purge(minIndex, maxIndex, manager);
         if (fileIndex < 0) {
             return null;
         }
         if (LOGGER.isTraceEnabled()) {
-            double duration = (System.nanoTime() - start) / (1000.0 * 1000.0 * 1000.0);
+            final double duration = (System.nanoTime() - start) / (1000.0 * 1000.0 * 1000.0);
             LOGGER.trace("DefaultArchiveRolloverStrategy.purge() took {} seconds", duration);
         }
         final StringBuilder buf = new StringBuilder(255);
@@ -364,14 +364,14 @@ public class DefaultArchiveRolloverStrategy implements RolloverStrategy {
         final String compressedName = renameTo;
         Action compressAction = null;
 
-        if (renameTo.endsWith(".gz") && !currentFileName.endsWith(".gz")) {
-            renameTo = renameTo.substring(0, renameTo.length() - 3);
-            compressAction = new GZCompressAction(new File(renameTo), new File(compressedName), true);
-        } else if (renameTo.endsWith(".zip") && !currentFileName.endsWith(".zip")) {
-            renameTo = renameTo.substring(0, renameTo.length() - 4);
-            compressAction = new ZipCompressAction(new File(renameTo), new File(compressedName), true, compressionLevel);
+        if (renameTo.endsWith(EXT_GZIP) && !currentFileName.endsWith(EXT_GZIP)) {
+            renameTo = renameTo.substring(0, renameTo.length() - EXT_GZIP.length() - EXT_GZIP.length());
+            compressAction = new GzCompressAction(new File(renameTo), new File(compressedName), true);
+        } else if (renameTo.endsWith(EXT_ZIP) && !currentFileName.endsWith(EXT_ZIP)) {
+            renameTo = renameTo.substring(0, renameTo.length() - EXT_ZIP.length() - EXT_ZIP.length());
+            compressAction = new ZipCompressAction(new File(renameTo), new File(compressedName), true,
+                    compressionLevel);
         }
-
 
         final FileRenameAction renameAction =
                 new FileRenameAction(new File(currentFileName), new File(renameTo), false);
@@ -381,6 +381,6 @@ public class DefaultArchiveRolloverStrategy implements RolloverStrategy {
 
     @Override
     public String toString() {
-        return "DefaultArchiveRolloverStrategy(min=" + minIndex + ", max=" + maxIndex + ")";
+        return "DefaultArchiveRolloverStrategy(min=" + minIndex + ", max=" + maxIndex + ')';
     }
 }

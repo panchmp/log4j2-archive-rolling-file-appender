@@ -13,17 +13,12 @@ import java.util.zip.ZipOutputStream;
 public class ArchiveRollingFileManager extends RollingFileManager {
     private static ArchiveRollingFileManagerFactory factory = new ArchiveRollingFileManagerFactory();
 
-    private final boolean bufferedIO;
 
-    protected ArchiveRollingFileManager(final String fileName, final String pattern, final OutputStream os,
-                                        final boolean append, final boolean bufferedIO, final long size, final long time, final TriggeringPolicy triggeringPolicy,
-                                        final RolloverStrategy rolloverStrategy, final String advertiseURI, final Layout<? extends Serializable> layout) {
-        super(fileName, pattern, os, append, size, time, triggeringPolicy, rolloverStrategy, advertiseURI, layout);
-        this.bufferedIO = bufferedIO;
-    }
-
-    public boolean isBufferedIO() {
-        return bufferedIO;
+    public ArchiveRollingFileManager(String fileName, String pattern, OutputStream os,
+                                     boolean append, long size, long time, TriggeringPolicy triggeringPolicy,
+                                     RolloverStrategy rolloverStrategy, String advertiseURI,
+                                     Layout<? extends Serializable> layout, int bufferSize) {
+        super(fileName, pattern, os, append, size, time, triggeringPolicy, rolloverStrategy, advertiseURI, layout, bufferSize);
     }
 
     /**
@@ -37,19 +32,31 @@ public class ArchiveRollingFileManager extends RollingFileManager {
      * @param strategy     The RolloverStrategy.
      * @param advertiseURI the URI to use when advertising the file
      * @param layout       The Layout.
+     * @param bufferSize   buffer size to use if bufferedIO is true
      * @return A ArchiveRollingFileManager.
      */
     public static ArchiveRollingFileManager getFileManager(final String fileName, final String pattern, final boolean append,
-                                                           final boolean bufferedIO, final TriggeringPolicy policy,
-                                                           final RolloverStrategy strategy, final String advertiseURI,
-                                                           final Layout<? extends Serializable> layout) {
+                                                           final boolean bufferedIO, final TriggeringPolicy policy, final RolloverStrategy strategy,
+                                                           final String advertiseURI, final Layout<? extends Serializable> layout, final int bufferSize) {
 
         return (ArchiveRollingFileManager) getManager(fileName, new FactoryData(pattern, append,
-                bufferedIO, policy, strategy, advertiseURI, layout), factory);
+                bufferedIO, policy, strategy, advertiseURI, layout, bufferSize), factory);
+    }
+
+    private static OutputStream getOutputStream(String name, boolean append, int bufferSize) throws IOException {
+        OutputStream os = new FileOutputStream(name, append);
+        if (name.endsWith(".gz")) {
+            os = new GZIPOutputStream(os, 1024);
+        } else if (name.endsWith(".zip")) {
+            os = new ZipOutputStream(os);
+        } else if (bufferSize > 0) {
+            os = new BufferedOutputStream(os, bufferSize);
+        }
+        return os;
     }
 
     protected void createFileAfterRollover() throws IOException {
-        final OutputStream os = getOutputStream(getFileName(), isAppend(), isBufferedIO());
+        final OutputStream os = getOutputStream(getFileName(), isAppend(), getBufferSize());
         setOutputStream(os);
     }
 
@@ -60,6 +67,7 @@ public class ArchiveRollingFileManager extends RollingFileManager {
         private final String pattern;
         private final boolean append;
         private final boolean bufferedIO;
+        private final int bufferSize;
         private final TriggeringPolicy policy;
         private final RolloverStrategy strategy;
         private final String advertiseURI;
@@ -73,13 +81,15 @@ public class ArchiveRollingFileManager extends RollingFileManager {
          * @param bufferedIO   The bufferedIO flag.
          * @param advertiseURI
          * @param layout       The Layout.
+         * @param bufferSize   the buffer size
          */
         public FactoryData(final String pattern, final boolean append, final boolean bufferedIO,
                            final TriggeringPolicy policy, final RolloverStrategy strategy, final String advertiseURI,
-                           final Layout<? extends Serializable> layout) {
+                           final Layout<? extends Serializable> layout, final int bufferSize) {
             this.pattern = pattern;
             this.append = append;
             this.bufferedIO = bufferedIO;
+            this.bufferSize = bufferSize;
             this.policy = policy;
             this.strategy = strategy;
             this.advertiseURI = advertiseURI;
@@ -115,27 +125,21 @@ public class ArchiveRollingFileManager extends RollingFileManager {
             final long size = data.append ? file.length() : 0;
 
             try {
-                OutputStream os = getOutputStream(name, data.append, data.bufferedIO);
+                int bufferSize;
+                if (data.bufferedIO) {
+                    bufferSize = data.bufferSize;
+                } else {
+                    bufferSize = -1; // negative buffer size signals bufferedIO was configured false
+                }
+                OutputStream os = getOutputStream(name, data.append, data.bufferSize);
                 final long time = file.lastModified(); // LOG4J2-531 create file first so time has valid value
-                return new ArchiveRollingFileManager(name, data.pattern, os, data.append, data.bufferedIO, size, time, data.policy,
-                        data.strategy, data.advertiseURI, data.layout);
+                return new ArchiveRollingFileManager(name, data.pattern, os, data.append, size, time, data.policy,
+                        data.strategy, data.advertiseURI, data.layout, bufferSize);
             } catch (final IOException ex) {
                 LOGGER.error("FileManager (" + name + ") " + ex);
             }
             return null;
         }
-    }
-
-    private static OutputStream getOutputStream(String name, boolean append, boolean bufferedIO) throws IOException {
-        OutputStream os = new FileOutputStream(name, append);
-        if (name.endsWith(".gz")) {
-            os = new GZIPOutputStream(os, 124);
-        } else if (name.endsWith(".zip")) {
-            os = new ZipOutputStream(os);
-        } else if (bufferedIO) {
-            os = new BufferedOutputStream(os);
-        }
-        return os;
     }
 }
 

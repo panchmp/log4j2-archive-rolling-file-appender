@@ -14,7 +14,7 @@
     </properties>
 
     <prerequisites>
-        <maven>3.0.5</maven>
+        <maven>3.2.2</maven>
     </prerequisites>
 
 
@@ -34,9 +34,9 @@
     </dependencies>
 
     <scm>
-        <connection>scm:git:https://github.com/panchmp/log4j2-archive-rolling-file-appender.git</connection>
-        <developerConnection>scm:git:https://github.com/panchmp/log4j2-archive-rolling-file-appender.git</developerConnection>
-        <url>https://github.com/panchmp/log4j2-archive-rolling-file-appender.git</url>
+        <connection>scm:git:git@github.com:panchmp/log4j2-archive-rolling-file-appender.git</connection>
+        <developerConnection>scm:git:git@github.com:panchmp/log4j2-archive-rolling-file-appender.git</developerConnection>
+        <url>scm:git:git@github.com:panchmp/log4j2-archive-rolling-file-appender.git</url>
     </scm>
 
     <profiles>

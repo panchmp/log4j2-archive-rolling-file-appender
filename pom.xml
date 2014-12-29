@@ -40,31 +40,6 @@
         <tag>HEAD</tag>
     </scm>
 
-    <profiles>
-        <profile>
-            <id>release</id>
-            <activation>
-                <property>
-                    <name>deploy</name>
-                    <value>release</value>
-                </property>
-            </activation>
-            <build>
-                <defaultGoal>clean release:clean release:prepare release:perform</defaultGoal>
-                <plugins>
-                    <plugin>
-                        <groupId>org.apache.maven.plugins</groupId>
-                        <artifactId>maven-release-plugin</artifactId>
-                        <version>2.2.2</version>
-                        <configuration>
-                            <mavenExecutorId>forked-path</mavenExecutorId>
-                        </configuration>
-                    </plugin>
-                </plugins>
-            </build>
-        </profile>
-    </profiles>
-
     <distributionManagement>
         <snapshotRepository>
             <id>webamg-nexus-snapshots</id>

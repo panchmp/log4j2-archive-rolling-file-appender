@@ -46,10 +46,11 @@ public class ArchiveRollingFileManager extends RollingFileManager {
     private static OutputStream getOutputStream(String name, boolean append, int bufferSize) throws IOException {
         OutputStream os = new FileOutputStream(name, append);
         if (name.endsWith(".gz")) {
-            os = new GZIPOutputStream(os, 1024);
+            os = new GZIPOutputStream(os);
         } else if (name.endsWith(".zip")) {
             os = new ZipOutputStream(os);
-        } else if (bufferSize > 0) {
+        }
+        if (bufferSize > 0) {
             os = new BufferedOutputStream(os, bufferSize);
         }
         return os;

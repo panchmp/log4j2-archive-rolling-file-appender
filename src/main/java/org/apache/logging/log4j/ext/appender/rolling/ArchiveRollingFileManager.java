@@ -45,14 +45,17 @@ public class ArchiveRollingFileManager extends RollingFileManager {
 
     private static OutputStream getOutputStream(String name, boolean append, int bufferSize) throws IOException {
         OutputStream os = new FileOutputStream(name, append);
+
+        if (bufferSize > 0) {
+            os = new BufferedOutputStream(os, bufferSize);
+        }
+
         if (name.endsWith(".gz")) {
             os = new GZIPOutputStream(os);
         } else if (name.endsWith(".zip")) {
             os = new ZipOutputStream(os);
         }
-        if (bufferSize > 0) {
-            os = new BufferedOutputStream(os, bufferSize);
-        }
+
         return os;
     }
 
@@ -110,7 +113,6 @@ public class ArchiveRollingFileManager extends RollingFileManager {
          * @param data The data required to create the entity.
          * @return a ArchiveRollingFileManager.
          */
-        @Override
         public ArchiveRollingFileManager createManager(final String name, final FactoryData data) {
             final File file = new File(name);
             final File parent = file.getParentFile();

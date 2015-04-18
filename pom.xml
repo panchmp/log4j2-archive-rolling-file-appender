@@ -37,7 +37,6 @@
         <connection>scm:git:git@github.com:panchmp/log4j2-archive-rolling-file-appender.git</connection>
         <developerConnection>scm:git:git@github.com:panchmp/log4j2-archive-rolling-file-appender.git</developerConnection>
         <url>scm:git:git@github.com:panchmp/log4j2-archive-rolling-file-appender.git</url>
-        <tag>HEAD</tag>
     </scm>
 
     <distributionManagement>
